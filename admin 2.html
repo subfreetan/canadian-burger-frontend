@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Canadian Burger - Admin</title>
+    <link rel="icon" type="image/png" href="images/logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root{--primary:#D4213D;--secondary:#F5A623;--dark:#1A1A1A;--dark-light:#2D2D2D;--gray:#6B6B6B;--white:#FFF;--success:#4CAF50;--warning:#FF9800;--error:#F44336;--secret:#9D00FF;--gradient-red:linear-gradient(135deg,#D4213D,#8B1425);--gradient-gold:linear-gradient(135deg,#F5A623,#D4900F);--gradient-secret:linear-gradient(135deg,#9D00FF,#5B0099);--radius:16px;--radius-sm:10px}
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Poppins',sans-serif;background:var(--dark);color:var(--white);min-height:100vh;padding-bottom:80px}
+        body.secret-mode{background:linear-gradient(180deg,#0d001a 0%,#1a0033 100%)}
+        .header{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--dark);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.1)}
+        body.secret-mode .header{background:rgba(157,0,255,0.15);border-bottom:1px solid rgba(157,0,255,0.3)}
+        .header-logo{height:40px}.header-title{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--secondary)}
+        body.secret-mode .header-title{color:var(--secret)}
+        body.secret-mode .header-title::after{content:' 🔮';font-size:16px}
+        .main-content{padding-top:65px}
+        .section-title{font-family:'Bebas Neue',sans-serif;font-size:22px;padding:16px}
+        .stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:0 16px 16px}
+        .stat-card{background:var(--dark-light);border-radius:var(--radius);padding:16px;text-align:center}
+        .stat-card.highlight{background:var(--gradient-red)}
+        body.secret-mode .stat-card{background:rgba(157,0,255,0.2);border:1px solid rgba(157,0,255,0.3)}
+        body.secret-mode .stat-card.highlight{background:var(--gradient-secret)}
+        .stat-value{font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--secondary)}
+        body.secret-mode .stat-value{color:var(--secret)}
+        .stat-card.highlight .stat-value{color:var(--white)}
+        .stat-label{font-size:12px;color:var(--gray);margin-top:4px}
+        .stat-card.highlight .stat-label{color:rgba(255,255,255,0.8)}
+        .orders-list{padding:0 16px}
+        .order-card{background:var(--dark-light);border-radius:var(--radius);padding:14px;margin-bottom:10px;border-left:4px solid var(--gray)}
+        body.secret-mode .order-card{background:rgba(157,0,255,0.15);border:1px solid rgba(157,0,255,0.2)}
+        .order-card.pending{border-left-color:var(--warning)}
+        .order-card.preparing{border-left-color:var(--primary)}
+        .order-card.ready{border-left-color:var(--success)}
+        .order-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+        .order-code{font-family:'Bebas Neue',sans-serif;font-size:18px}
+        .order-customer,.order-time{font-size:12px;color:var(--gray);margin-bottom:6px}
+        .order-items{font-size:13px;padding:10px;background:var(--dark);border-radius:var(--radius-sm);margin-bottom:10px}
+        body.secret-mode .order-items{background:rgba(0,0,0,0.3)}
+        .order-item{display:flex;justify-content:space-between;padding:4px 0}
+        .order-footer{display:flex;justify-content:space-between;align-items:center}
+        .order-total{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--secondary)}
+        body.secret-mode .order-total{color:var(--secret)}
+        .order-points{font-size:12px;color:var(--secondary)}
+        .order-actions{display:flex;gap:8px}
+        .order-btn{padding:10px 16px;border-radius:20px;font-weight:600;font-size:12px;cursor:pointer;border:none;position:relative;overflow:hidden}
+        .order-btn.prepare{background:var(--primary);color:var(--white);min-width:120px}
+        .order-btn.prepare.wide{min-width:200px;padding:10px 32px}
+        .order-btn.ready{background:var(--success);color:var(--white)}
+        .order-btn.complete{background:var(--gradient-gold);color:var(--dark)}
+        .order-btn.cancel{background:transparent;border:1px solid var(--error);color:var(--error)}
+        .status-badge{padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600}
+        .status-badge.pending{background:var(--warning);color:var(--dark)}
+        .status-badge.preparing{background:var(--primary);color:var(--white)}
+        .status-badge.ready{background:var(--success);color:var(--white)}
+        .status-badge.completed{background:var(--gray);color:var(--white)}
+        .scanner-section{padding:16px;text-align:center}
+        .scanner-btn{width:100%;padding:20px;background:var(--gradient-red);border:none;border-radius:var(--radius);color:var(--white);font-family:'Bebas Neue',sans-serif;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:12px}
+        body.secret-mode .scanner-btn{background:var(--gradient-secret)}
+        .manual-input{margin-top:16px}
+        .manual-input input{width:100%;padding:14px;background:var(--dark-light);border:2px solid transparent;border-radius:var(--radius-sm);color:var(--white);font-size:16px;text-align:center;text-transform:uppercase;letter-spacing:2px}
+        .manual-input input:focus{outline:none;border-color:var(--primary)}
+        body.secret-mode .manual-input input:focus{border-color:var(--secret)}
+        .search-btn{width:100%;margin-top:10px;padding:14px;background:var(--dark-light);border:2px solid var(--primary);border-radius:30px;color:var(--white);font-family:'Bebas Neue',sans-serif;font-size:18px;cursor:pointer}
+        body.secret-mode .search-btn{border-color:var(--secret)}
+        .scanned-order{background:var(--dark-light);border-radius:var(--radius);padding:20px;margin:16px}
+        .scanned-order h2{font-family:'Bebas Neue',sans-serif;font-size:24px;margin-bottom:16px;text-align:center}
+        .scanned-info{display:flex;justify-content:space-between;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.1)}
+        .scanned-label{color:var(--gray)}.scanned-value{font-weight:600}
+        .scanned-items{background:var(--dark);padding:12px;border-radius:var(--radius-sm);margin:16px 0}
+        .scanned-total{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--secondary);text-align:center;margin:16px 0}
+        .scanned-actions{display:flex;gap:10px;margin-top:20px}
+        .scanned-actions button{flex:1;padding:14px;border-radius:30px;font-family:'Bebas Neue',sans-serif;font-size:18px;cursor:pointer;border:none}
+        .btn-validate{background:var(--success);color:var(--white)}
+        .btn-cancel{background:transparent;border:2px solid var(--error)!important;color:var(--error)}
+        .product-manage{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.1);align-items:center}
+        .product-manage-info{flex:1}
+        .product-manage-name{font-weight:600;font-size:14px}
+        .product-manage-price{color:var(--secondary);font-size:13px}
+        .toggle-switch{position:relative;width:50px;height:28px;background:var(--gray);border-radius:14px;cursor:pointer}
+        .toggle-switch.active{background:var(--success)}
+        .toggle-switch::after{content:'';position:absolute;width:24px;height:24px;background:var(--white);border-radius:50%;top:2px;left:2px;transition:transform 0.3s}
+        .toggle-switch.active::after{transform:translateX(22px)}
+        .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--dark);border-top:1px solid rgba(255,255,255,0.1);padding:8px 0;display:flex;justify-content:space-around;z-index:100}
+        body.secret-mode .bottom-nav{background:rgba(157,0,255,0.15);border-top:1px solid rgba(157,0,255,0.3)}
+        .nav-item{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 16px;color:var(--gray);font-size:10px;cursor:pointer;background:none;border:none}
+        .nav-item.active{color:var(--primary)}
+        body.secret-mode .nav-item.active{color:var(--secret)}
+        .nav-item svg{width:22px;height:22px}
+        .auth-container{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+        .auth-logo{width:120px;margin-bottom:30px}
+        .auth-title{font-family:'Bebas Neue',sans-serif;font-size:28px;margin-bottom:8px}
+        .auth-subtitle{color:var(--gray);font-size:14px;margin-bottom:30px}
+        .auth-form{width:100%;max-width:320px}
+        .form-group{margin-bottom:16px}
+        .form-input{width:100%;padding:14px;background:var(--dark-light);border:2px solid transparent;border-radius:var(--radius-sm);color:var(--white);font-size:16px}
+        .form-input:focus{outline:none;border-color:var(--primary)}
+        .auth-btn{width:100%;padding:16px;background:var(--gradient-red);border:none;border-radius:30px;color:var(--white);font-family:'Bebas Neue',sans-serif;font-size:20px;cursor:pointer}
+        .page{display:none}.page.active{display:block}
+        .section{display:none}.section.active{display:block}
+        .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--dark-light);padding:12px 20px;border-radius:30px;font-size:14px;z-index:300;opacity:0;transition:all 0.3s}
+        .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+        .toast.success{border-left:4px solid var(--success)}.toast.error{border-left:4px solid var(--error)}
+        .filter-tabs{display:flex;gap:8px;padding:0 16px 16px;overflow-x:auto}
+        .filter-tab{padding:8px 16px;background:var(--dark-light);border:none;border-radius:20px;color:var(--gray);font-size:13px;cursor:pointer}
+        .filter-tab.active{background:var(--primary);color:var(--white)}
+        body.secret-mode .filter-tab.active{background:var(--secret)}
+        .empty-state{text-align:center;padding:60px 20px;color:var(--gray)}
+        .empty-state-icon{font-size:48px;margin-bottom:16px}
+        /* Secret section styles */
+        .secret-section{display:none;padding:16px}
+        body.secret-mode .secret-section{display:block}
+        .secret-card{background:rgba(157,0,255,0.2);border:1px solid rgba(157,0,255,0.4);border-radius:var(--radius);padding:20px;margin-bottom:16px}
+        .secret-title{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--secret);margin-bottom:12px}
+        .hidden-orders-title{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--secret);margin:20px 16px 10px;display:none}
+        body.secret-mode .hidden-orders-title{display:block}
+        .hidden-order{background:rgba(157,0,255,0.1);border:1px dashed rgba(157,0,255,0.4);border-radius:var(--radius);padding:14px;margin:0 16px 10px;display:none}
+        body.secret-mode .hidden-order{display:block}
+    </style>
+</head>
+<body>
+    <div id="loginPage" class="page active">
+        <div class="auth-container">
+            <img src="images/logo.png" class="auth-logo">
+            <h1 class="auth-title">ESPACE ADMIN</h1>
+            <p class="auth-subtitle">Connectez-vous pour gérer le restaurant</p>
+            <form id="loginForm" class="auth-form">
+                <div class="form-group"><input type="email" class="form-input" id="loginEmail" placeholder="Email admin" required></div>
+                <div class="form-group"><input type="password" class="form-input" id="loginPassword" placeholder="Mot de passe" required></div>
+                <button type="submit" class="auth-btn">CONNEXION</button>
+            </form>
+        </div>
+    </div>
+    <div id="adminPage" class="page">
+        <header class="header"><img src="images/logo.png" class="header-logo"><span class="header-title">ADMIN</span></header>
+        <main class="main-content">
+            <div id="dashboardSection" class="section active">
+                <h2 class="section-title">Tableau de bord</h2>
+                <div id="statsGrid" class="stats-grid"></div>
+                <h2 class="section-title">Commandes</h2>
+                <div class="filter-tabs">
+                    <button class="filter-tab active" onclick="filterOrders('active',this)">En cours</button>
+                    <button class="filter-tab" onclick="filterOrders('pending',this)">Attente</button>
+                    <button class="filter-tab" onclick="filterOrders('preparing',this)">Préparation</button>
+                    <button class="filter-tab" onclick="filterOrders('ready',this)">Prêtes</button>
+                    <button class="filter-tab" onclick="filterOrders('all',this)">Toutes</button>
+                </div>
+                <div id="ordersList" class="orders-list"></div>
+                
+                <!-- Hidden orders section (only visible in secret mode) -->
+                <h2 class="hidden-orders-title">🔮 Commandes Masquées</h2>
+                <div id="hiddenOrdersList"></div>
+            </div>
+            <div id="scannerSection" class="section">
+                <h2 class="section-title">Scanner une commande</h2>
+                <div class="scanner-section">
+                    <button class="scanner-btn" onclick="startScanner()">📷 SCANNER QR CODE</button>
+                    <div class="manual-input">
+                        <input type="text" id="manualCode" placeholder="Ou entrez le code">
+                        <button class="search-btn" onclick="searchOrder()">RECHERCHER</button>
+                    </div>
+                </div>
+                <div id="scannedOrderContainer"></div>
+            </div>
+            <div id="productsSection" class="section">
+                <h2 class="section-title">Gestion des produits</h2>
+                <div id="productsList" style="padding:0 16px"></div>
+            </div>
+            <!-- Secret Section -->
+            <div id="secretSection" class="section secret-section">
+                <h2 class="section-title">🔮 Mode Secret</h2>
+                <div class="secret-card">
+                    <div class="secret-title">Statistiques Cachées</div>
+                    <p>Commandes masquées: <span id="hiddenCount">0</span></p>
+                    <p>Total caché: <span id="hiddenTotal">0€</span></p>
+                </div>
+                <div class="secret-card">
+                    <div class="secret-title">Actions Spéciales</div>
+                    <button class="search-btn" onclick="restoreAllHidden()" style="margin-top:10px">Restaurer toutes les commandes</button>
+                </div>
+            </div>
+        </main>
+        <nav class="bottom-nav">
+            <button class="nav-item active" onclick="showSection('dashboard',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span>Dashboard</span></button>
+            <button class="nav-item" onclick="showSection('scanner',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span>Scanner</span></button>
+            <button class="nav-item" onclick="showSection('products',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg><span>Produits</span></button>
+            <button class="nav-item" id="secretNavBtn" style="display:none" onclick="showSection('secret',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><span>Secret</span></button>
+            <button class="nav-item" onclick="logout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>Quitter</span></button>
+        </nav>
+    </div>
+    <div id="toast" class="toast"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.4/html5-qrcode.min.js"></script>
+    <script>
+// ⚠️ REMPLACE CETTE URL PAR TON URL VERCEL
+const API_URL='https://canadian-burger-api.vercel.app/api';
+
+let admin=null,orders=[],products=[],stats={},currentFilter='active',refreshInterval;
+let adminMode='normal'; // 'normal', 'secret-enabled', 'secret-full'
+let hiddenOrders=[]; // Commandes masquées
+
+async function apiCall(e,o={}){try{const r=await fetch(API_URL+e,{headers:{'Content-Type':'application/json'},...o});return await r.json();}catch(err){showToast('Erreur','error');return null;}}
+
+document.getElementById('loginForm').addEventListener('submit',async e=>{
+    e.preventDefault();
+    const email=document.getElementById('loginEmail').value;
+    const password=document.getElementById('loginPassword').value;
+    
+    // Check different admin modes based on password
+    let apiPassword='admin123';
+    if(password==='admin123'){
+        adminMode='secret-enabled'; // Mode with hidden button feature
+    }else if(password==='admin1234'){
+        adminMode='secret-full'; // Full secret interface
+    }else if(password==='admin12345'){
+        adminMode='normal'; // Normal mode, no secret features
+    }else{
+        apiPassword=password;
+        adminMode='normal';
+    }
+    
+    const r=await apiCall('/auth/login',{method:'POST',body:JSON.stringify({email,password:apiPassword})});
+    if(r&&r.success&&r.user.role==='admin'){
+        admin=r.user;
+        admin.mode=adminMode;
+        localStorage.setItem('cb_admin',JSON.stringify(admin));
+        showAdminInterface();
+    }else{
+        showToast('Accès refusé','error');
+    }
+});
+
+function logout(){
+    admin=null;
+    adminMode='normal';
+    hiddenOrders=[];
+    localStorage.removeItem('cb_admin');
+    localStorage.removeItem('cb_hidden');
+    clearInterval(refreshInterval);
+    document.body.classList.remove('secret-mode');
+    document.getElementById('adminPage').classList.remove('active');
+    document.getElementById('loginPage').classList.add('active');
+}
+
+function showAdminInterface(){
+    document.getElementById('loginPage').classList.remove('active');
+    document.getElementById('adminPage').classList.add('active');
+    
+    // Load hidden orders from localStorage
+    const savedHidden=localStorage.getItem('cb_hidden');
+    if(savedHidden)hiddenOrders=JSON.parse(savedHidden);
+    
+    // Apply secret mode styling if full secret
+    if(admin.mode==='secret-full'){
+        document.body.classList.add('secret-mode');
+        document.getElementById('secretNavBtn').style.display='flex';
+    }else{
+        document.body.classList.remove('secret-mode');
+        document.getElementById('secretNavBtn').style.display='none';
+    }
+    
+    loadDashboard();
+    refreshInterval=setInterval(loadDashboard,30000);
+}
+
+async function loadDashboard(){await loadStats();await loadOrders();await loadProducts();renderStats();renderOrders();renderHiddenOrders();}
+async function loadStats(){const s=await apiCall('/stats');if(s)stats=s;}
+async function loadOrders(){const o=await apiCall('/orders');if(o)orders=o;}
+async function loadProducts(){const p=await apiCall('/products');if(p)products=p;}
+
+function renderStats(){
+    document.getElementById('statsGrid').innerHTML=`
+        <div class="stat-card highlight"><div class="stat-value">${stats.pendingOrders||0}</div><div class="stat-label">En attente</div></div>
+        <div class="stat-card"><div class="stat-value">${stats.preparingOrders||0}</div><div class="stat-label">Préparation</div></div>
+        <div class="stat-card"><div class="stat-value">${stats.readyOrders||0}</div><div class="stat-label">Prêtes</div></div>
+        <div class="stat-card"><div class="stat-value">${stats.todayOrders||0}</div><div class="stat-label">Aujourd'hui</div></div>
+        <div class="stat-card"><div class="stat-value">${(stats.todayRevenue||0).toFixed(0)}€</div><div class="stat-label">CA Jour</div></div>
+        <div class="stat-card"><div class="stat-value">${stats.totalUsers||0}</div><div class="stat-label">Clients</div></div>`;
+    
+    // Update secret stats
+    document.getElementById('hiddenCount').textContent=hiddenOrders.length;
+    document.getElementById('hiddenTotal').textContent=hiddenOrders.reduce((s,o)=>s+o.total,0).toFixed(2)+'€';
+}
+
+function filterOrders(f,btn){currentFilter=f;document.querySelectorAll('.filter-tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');renderOrders();}
+
+function renderOrders(){
+    const list=document.getElementById('ordersList');
+    
+    // Filter out hidden orders
+    let visibleOrders=orders.filter(o=>!hiddenOrders.find(h=>h.id===o.id));
+    let filtered=visibleOrders;
+    
+    if(currentFilter==='active')filtered=visibleOrders.filter(o=>['pending','preparing','ready'].includes(o.status));
+    else if(currentFilter!=='all')filtered=visibleOrders.filter(o=>o.status===currentFilter);
+    
+    if(!filtered.length){
+        list.innerHTML=`<div class="empty-state"><div class="empty-state-icon">📦</div><p>Aucune commande</p></div>`;
+        return;
+    }
+    
+    const labels={pending:'En attente',preparing:'Préparation',ready:'Prête',completed:'Terminée',cancelled:'Annulée'};
+    
+    list.innerHTML=filtered.map(o=>{
+        const time=new Date(o.createdAt).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+        const items=o.items.map(i=>{const p=products.find(x=>x.id===i.productId);return`<div class="order-item"><span>${i.quantity}x ${p?p.name:'?'}</span><span>${(i.price*i.quantity).toFixed(2)}€</span></div>`;}).join('');
+        
+        let actions='';
+        if(o.status==='pending'){
+            // Check admin mode for button style
+            if(admin.mode==='secret-enabled'){
+                // Wide button with hidden zone
+                actions=`<button class="order-btn prepare wide" onclick="handlePrepareClick(event,${o.id})">Préparer</button><button class="order-btn cancel" onclick="updateStatus(${o.id},'cancelled')">Annuler</button>`;
+            }else{
+                // Normal button
+                actions=`<button class="order-btn prepare" onclick="updateStatus(${o.id},'preparing')">Préparer</button><button class="order-btn cancel" onclick="updateStatus(${o.id},'cancelled')">Annuler</button>`;
+            }
+        }else if(o.status==='preparing'){
+            actions=`<button class="order-btn ready" onclick="updateStatus(${o.id},'ready')">Prêt</button>`;
+        }else if(o.status==='ready'){
+            actions=`<button class="order-btn complete" onclick="updateStatus(${o.id},'completed')">Terminé</button>`;
+        }
+        
+        return`<div class="order-card ${o.status}"><div class="order-header"><span class="order-code">${o.orderCode}</span><span class="status-badge ${o.status}">${labels[o.status]}</span></div><div class="order-customer">👤 ${o.userName||'Client'}</div><div class="order-time">🕐 ${time}</div><div class="order-items">${items}</div><div class="order-footer"><div><div class="order-total">${o.total.toFixed(2)}€</div><div class="order-points">+${o.pointsEarned} pts</div></div><div class="order-actions">${actions}</div></div></div>`;
+    }).join('');
+}
+
+// Handle click on the wide Prepare button
+function handlePrepareClick(event,orderId){
+    const btn=event.target;
+    const rect=btn.getBoundingClientRect();
+    const clickX=event.clientX-rect.left;
+    const btnWidth=rect.width;
+    const clickPercent=clickX/btnWidth;
+    
+    if(clickPercent>0.5){
+        // Right side clicked - hide the order
+        hideOrder(orderId);
+    }else{
+        // Left side clicked - normal behavior
+        updateStatus(orderId,'preparing');
+    }
+}
+
+function hideOrder(orderId){
+    const order=orders.find(o=>o.id===orderId);
+    if(order){
+        hiddenOrders.push(order);
+        localStorage.setItem('cb_hidden',JSON.stringify(hiddenOrders));
+        renderOrders();
+        renderHiddenOrders();
+        renderStats();
+        showToast('Commande masquée','success');
+    }
+}
+
+function renderHiddenOrders(){
+    const list=document.getElementById('hiddenOrdersList');
+    if(!hiddenOrders.length||admin.mode!=='secret-full'){
+        list.innerHTML='';
+        return;
+    }
+    
+    list.innerHTML=hiddenOrders.map(o=>{
+        const items=o.items.map(i=>`${i.quantity}x`).join(', ');
+        return`<div class="hidden-order"><div style="display:flex;justify-content:space-between;align-items:center"><div><strong>${o.orderCode}</strong><br><small>${items} - ${o.total.toFixed(2)}€</small></div><button class="order-btn prepare" onclick="restoreOrder(${o.id})">Restaurer</button></div></div>`;
+    }).join('');
+}
+
+function restoreOrder(orderId){
+    hiddenOrders=hiddenOrders.filter(o=>o.id!==orderId);
+    localStorage.setItem('cb_hidden',JSON.stringify(hiddenOrders));
+    renderOrders();
+    renderHiddenOrders();
+    renderStats();
+    showToast('Commande restaurée','success');
+}
+
+function restoreAllHidden(){
+    hiddenOrders=[];
+    localStorage.setItem('cb_hidden',JSON.stringify(hiddenOrders));
+    renderOrders();
+    renderHiddenOrders();
+    renderStats();
+    showToast('Toutes les commandes restaurées','success');
+}
+
+async function updateStatus(id,status){
+    const r=await apiCall(`/orders/${id}`,{method:'PATCH',body:JSON.stringify({status})});
+    if(r){showToast(status==='completed'?'Terminée!':'Mis à jour','success');await loadDashboard();}
+}
+
+function startScanner(){
+    const c=document.getElementById('scannedOrderContainer');
+    c.innerHTML=`<div style="padding:16px"><div id="qr-reader" style="width:100%"></div></div>`;
+    const qr=new Html5Qrcode("qr-reader");
+    qr.start({facingMode:"environment"},{fps:10,qrbox:{width:250,height:250}},async code=>{qr.stop();await searchByCode(code);},()=>{}).catch(()=>{c.innerHTML=`<div class="empty-state"><p>Caméra non disponible</p></div>`;});
+}
+
+async function searchOrder(){const code=document.getElementById('manualCode').value.trim().toUpperCase();if(code)await searchByCode(code);}
+
+async function searchByCode(code){
+    const r=await apiCall(`/orders/code/${code}`);
+    if(r&&!r.error)renderScannedOrder(r);
+    else{showToast('Non trouvée','error');document.getElementById('scannedOrderContainer').innerHTML='';}
+}
+
+function renderScannedOrder(o){
+    const labels={pending:'En attente',preparing:'Préparation',ready:'Prête',completed:'Terminée'};
+    const items=o.items.map(i=>`<div class="order-item"><span>${i.quantity}x ${i.name}</span><span>${(i.price*i.quantity).toFixed(2)}€</span></div>`).join('');
+    let actions='';
+    if(['pending','preparing','ready'].includes(o.status))actions=`<button class="btn-validate" onclick="validateOrder(${o.id})">VALIDER</button><button class="btn-cancel" onclick="cancelOrder(${o.id})">ANNULER</button>`;
+    document.getElementById('scannedOrderContainer').innerHTML=`<div class="scanned-order"><h2>${o.orderCode}</h2><div class="scanned-info"><span class="scanned-label">Client</span><span class="scanned-value">${o.userName}</span></div><div class="scanned-info"><span class="scanned-label">Statut</span><span class="status-badge ${o.status}">${labels[o.status]||o.status}</span></div><div class="scanned-items">${items}</div><div class="scanned-total">${o.total.toFixed(2)}€</div><div class="scanned-info" style="border:none"><span class="scanned-label">Points à créditer</span><span class="scanned-value" style="color:var(--secondary)">+${o.pointsEarned}</span></div><div class="scanned-actions">${actions}</div></div>`;
+}
+
+async function validateOrder(id){await updateStatus(id,'completed');document.getElementById('scannedOrderContainer').innerHTML='';document.getElementById('manualCode').value='';}
+async function cancelOrder(id){await updateStatus(id,'cancelled');document.getElementById('scannedOrderContainer').innerHTML='';document.getElementById('manualCode').value='';}
+
+function renderProducts(){
+    document.getElementById('productsList').innerHTML=products.map(p=>`<div class="product-manage"><div class="product-manage-info"><div class="product-manage-name">${p.name}</div><div class="product-manage-price">${p.price.toFixed(2)}€</div></div><div class="toggle-switch ${p.available?'active':''}" onclick="toggleProduct(${p.id},${!p.available})"></div></div>`).join('');
+}
+
+async function toggleProduct(id,avail){
+    const r=await apiCall(`/products/${id}`,{method:'PATCH',body:JSON.stringify({available:avail})});
+    if(r){await loadProducts();renderProducts();showToast(avail?'Activé':'Désactivé','success');}
+}
+
+function showSection(s,btn){
+    document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));
+    document.getElementById(s+'Section').classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    btn.classList.add('active');
+    if(s==='products')renderProducts();
+    if(s==='scanner'){document.getElementById('scannedOrderContainer').innerHTML='';document.getElementById('manualCode').value='';}
+}
+
+function showToast(msg,type='success'){const t=document.getElementById('toast');t.textContent=msg;t.className=`toast ${type} show`;setTimeout(()=>t.classList.remove('show'),3000);}
+
+// Init
+const saved=localStorage.getItem('cb_admin');
+if(saved){
+    admin=JSON.parse(saved);
+    adminMode=admin.mode||'normal';
+    showAdminInterface();
+}
+    </script>
+</body>
+</html>
